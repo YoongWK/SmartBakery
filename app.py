@@ -38,7 +38,11 @@ def get_latest_record():
                       "hum": float(record['hum']),
                       "fan_speed": int(record['fan_speed']),
                       "bulb_heat": int(record['bulb_heat']),
-                      "manual_state": int(record['manual_state'])}
+                      "manual_state": int(record['manual_state']),
+                      "buzzer_state": int(record['buzzer_state']),
+                      "buzzer_enabled": int(record['buzzer_enabled']),
+                      "low_temp": float(record['low_temp']),
+                      "high_temp": float(record['high_temp'])}
     return jsonify(latest_record)
 
 @app.put('/api/sensor-command')
@@ -63,14 +67,18 @@ def send_command():
     return "Success", 200
 
 def onMessage(client, userdata, message):
-    time, temp, hum, fan_speed, bulb_heat, manual_state = message.payload.decode('utf-8').split(',')
+    time, temp, hum, fan_speed, bulb_heat, manual_state, buzzer_state, buzzer_enabled, low_temp, high_temp = message.payload.decode('utf-8').split(',')
     record = (Point("data")
               .time(time)
               .field("temp", float(temp))
               .field("hum", float(hum))
               .field("fan_speed", int(fan_speed))
               .field("bulb_heat", int(bulb_heat))
-              .field("manual_state", int(manual_state)))
+              .field("manual_state", int(manual_state))
+              .field("buzzer_state", int(buzzer_state))
+              .field("buzzer_enabled", int(buzzer_enabled))
+              .field("low_temp", float(low_temp))
+              .field("high_temp", float(high_temp)))
     dbclient.write(record=record)
 
 def startMQTT():
