@@ -1,0 +1,6 @@
+flask
+python-dotenv
+paho-mqtt
+influxdb3-python
+pandas
+certifi
