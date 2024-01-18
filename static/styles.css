@@ -18,7 +18,7 @@ body {
 
 .control-label,
 .settings-label {
-    width: 100px;
+    width: 85px;
 }
 
 .form-switch .form-check-input:checked {

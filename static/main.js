@@ -14,6 +14,7 @@ var alertIcon = document.getElementById("alert-icon");
 var buzzerEnableButton = document.getElementById("buzzer-enable-button");
 var lowTempText = document.getElementById("low-temp-text");
 var highTempText = document.getElementById("high-temp-text");
+
 var step = 0.5;
 var lowTempMinusButton = document.getElementById("low-temp-minus-button");
 var lowTempPlusButton = document.getElementById("low-temp-plus-button");
