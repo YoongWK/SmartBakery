@@ -210,6 +210,7 @@ var graphLayout_1 = {
         automargin: true,
         fixedrange: true,
         rangemode: 'nonnegative',
+        zeroline: false,
     },
     margin: {
         pad: 15,
@@ -236,6 +237,7 @@ var graphLayout_2 = {
         fixedrange: true,
         range: [0, 6],
         tickvals: [0, 1, 2, 3, 4, 5],
+        zeroline: false,
     },
     margin: {
         pad: 15,
