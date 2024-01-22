@@ -54,11 +54,12 @@ address = 0x76
 calibration_params = bme280.load_calibration_params(bus=bus, address=address)
 
 # Smart Bakery Variables
-temp_low = 25
-temp_high = 26
+low_temp = 27
+high_temp = 29
 rgb_color = ""
 fan_speed = 0
 bulb_heat = 0
+buzzer_enabled = 1
 buzzer_state = 0
 manual_state = 0
 #-------------------------------------------- Variables End --------------------------------------------#
@@ -95,7 +96,7 @@ def setBuzzerState(state):
     GPIO.output(BUZZER_PIN, GPIO.LOW if (state == 0) else GPIO.HIGH)
 
 def onMessage(client, userdata, message):
-    global manual_state, fan_speed, bulb_heat
+    global manual_state, fan_speed, bulb_heat, buzzer_enabled, low_temp, high_temp
     payload = message.payload.decode('utf-8')
     print(f"\nReceived command: {payload}")
     
@@ -105,6 +106,12 @@ def onMessage(client, userdata, message):
         fan_speed = int(payload.split(',')[1])
     elif "bulbheat" in payload:
         bulb_heat = int(payload.split(',')[1])
+    elif "buzzerenabled" in payload:
+        buzzer_enabled = int(payload.split(',')[1])
+    elif "lowtemp" in payload:
+        low_temp = float(payload.split(',')[1])
+    elif "hightemp" in payload:
+        high_temp = float(payload.split(',')[1])
 
 def startMQTTSubscriber():
     mqtt_subscriber = mqtt.Client()
@@ -120,18 +127,18 @@ def startMQTTPublisher():
         date_time = datetime.now()
         data = bme280.sample(bus=bus, address=address, compensation_params=calibration_params)
         
-        if data.temperature >= temp_high:
+        if data.temperature >= high_temp:
             rgb_color = "red"
             if manual_state == 0:
-                fan_speed = calculateLevel(value=(data.temperature - temp_high), max_level=5, step=0.5)
+                fan_speed = calculateLevel(value=(data.temperature - high_temp), max_level=5, step=0.5)
                 bulb_heat = 0
             buzzer_state = 1
-        elif data.temperature < temp_low:
+        elif data.temperature < low_temp:
             rgb_color = "blue"
             if manual_state == 0:
                 fan_speed = 0
-                bulb_heat = calculateLevel(value=(temp_low - data.temperature), max_level=5, step=0.5)
-            buzzer_state = 0
+                bulb_heat = calculateLevel(value=(low_temp - data.temperature), max_level=5, step=0.5)
+            buzzer_state = 1
         else:
             rgb_color = "green"
             if manual_state == 0:
@@ -144,7 +151,7 @@ def startMQTTPublisher():
         print(f"\nClient was created at {date_time.strftime('%H:%M:%S')}")
         
         try:
-            payload = f"{date_time},{data.temperature:.02f},{data.humidity:.02f},{fan_speed},{bulb_heat},{manual_state}"
+            payload = f"{date_time},{data.temperature:.02f},{data.humidity:.02f},{fan_speed},{bulb_heat},{manual_state},{buzzer_state},{buzzer_enabled},{low_temp:.01f},{high_temp:.01f}"
             mqtt_publisher.publish(topic=topic_data, payload=payload, qos=1)
             print(f"Sent record: {payload}")
         except Exception as e:
@@ -175,7 +182,7 @@ try:
         setRGBLEDColor(color=rgb_color)
         setBulbHeat(heat=bulb_heat, max_level=5)
         setFanSpeed(speed=fan_speed, max_level=5)
-        setBuzzerState(state=buzzer_state)
+        setBuzzerState(state=buzzer_state if buzzer_enabled else 0)
         time.sleep(0.2)
 except KeyboardInterrupt:
     run_program = False

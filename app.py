@@ -1,6 +1,7 @@
 import os, certifi, threading, time
 from dotenv import load_dotenv
 import paho.mqtt.client as mqtt
+from datetime import datetime, timedelta
 from influxdb_client_3 import InfluxDBClient3, Point, flight_client_options
 from flask import Flask, jsonify, request, render_template
 
@@ -26,13 +27,18 @@ dbclient = InfluxDBClient3(host=host,
                            database=database,
                            flight_client_options=flight_client_options(tls_root_certs=tls_root_certs))
 
+latestdbtime = datetime.now()
+
 @app.route("/")
 def index():
     return render_template("index.html", url=request.base_url)
 
+# Get latest record from database
 @app.get('/api/latest-sensor-record')
 def get_latest_record():
+    global latestdbtime
     record = dbclient.query(query=f"SELECT * FROM \"data\" ORDER BY time DESC LIMIT 1").to_pandas().iloc[0]
+    latestdbtime = record['time']
     latest_record = {"time": record['time'].strftime("%d/%m/%Y - %H:%M:%S"),
                       "temp": float(record['temp']),
                       "hum": float(record['hum']),
@@ -44,6 +50,14 @@ def get_latest_record():
                       "low_temp": float(record['low_temp']),
                       "high_temp": float(record['high_temp'])}
     return jsonify(latest_record)
+
+# Get temperature and humidity period data from database
+@app.get('/api/period-sensor-record')
+def get_period_record():
+    record = dbclient.query(query=f"SELECT * FROM \"data\" WHERE time >= '{latestdbtime - timedelta(minutes=5)}'").to_pandas()
+    record = record.drop(["buzzer_enabled","buzzer_state","high_temp","low_temp","manual_state"], axis = 1)
+    record["time"] = record["time"].dt.strftime("%H:%M:%S").astype(str)
+    return record.to_json()
 
 @app.put('/api/sensor-command')
 def send_command():

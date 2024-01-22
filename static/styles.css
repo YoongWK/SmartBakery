@@ -4,11 +4,11 @@ body {
     background-color: #E1EDFC;
 }
 
-.navbar {
+.bg-blue {
     background-color: #368BEE;
 }
 
-.top-row {
+.small-card {
     height: 175px;
 }
 
@@ -94,4 +94,16 @@ body {
 
 .btn-temp-control:disabled {
     background-color: #BFBFBF;
+}
+
+.medium-card {
+    height: 330px;
+}
+
+.divider {
+    border: none;
+    height: 2px;
+    color: #368BEE;
+    background-color: #368BEE;
+    opacity: 1;
 }
