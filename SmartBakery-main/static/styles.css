@@ -1,0 +1,109 @@
+body {
+    font-family: Arial, sans-serif;
+    padding-top: 61px;
+    background-color: #E1EDFC;
+}
+
+.bg-blue {
+    background-color: #368BEE;
+}
+
+.small-card {
+    height: 175px;
+}
+
+.control {
+    height: 110px;
+}
+
+.control-label,
+.settings-label {
+    width: 85px;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #368BEE;
+    border-color: #368BEE;
+}
+
+.form-range {
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 16px;
+    height: 16px;
+}
+
+.form-range::-webkit-slider-runnable-track {
+    height: 16px;
+}
+
+.form-range::-webkit-slider-thumb {
+    margin-top: -0.5px;
+    height: 17px;
+    width: 17px;
+}
+
+.form-range::-webkit-slider-thumb,
+.form-range:focus::-webkit-slider-thumb {
+    background-color: #368BEE;
+    box-shadow: -409px 0 0 400px #368BEE;
+}
+
+.form-range:disabled::-webkit-slider-thumb {
+    background-color: #666666;
+    box-shadow: -409px 0 0 400px #666666;
+}
+
+.btn-custom {
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #FFFFFF;
+}
+
+.text-green {
+    color: #36EE99;
+}
+
+.text-red {
+    color: #EE368B;
+}
+
+.background-green {
+    background-color: #36EE99;
+}
+
+.background-green:hover,
+.background-green:active {
+    background-color: #30D689;
+}
+
+.background-red {
+    background-color: #EE368B;
+}
+
+.background-red:hover,
+.background-red:active {
+    background-color: #D6307D;
+}
+
+.btn-temp-control {
+    width: 30px;
+}
+
+.btn-temp-control:disabled {
+    background-color: #BFBFBF;
+}
+
+.medium-card {
+    height: 330px;
+}
+
+.divider {
+    border: none;
+    height: 2px;
+    color: #368BEE;
+    background-color: #368BEE;
+    opacity: 1;
+}
