@@ -3,6 +3,7 @@
     Project Title: Smart Bakery System
     Project Class: IOTP - PE04
     Project Group: 06
+    Project File: Smart_Bakery_Sensor.py
     Project Developers: Andrina Wei Ning Morrison, Ryan Chong Jay Chin, Yoong Wai Kit
     Project Development Period: Nov 2023 - Feb 2024
 """
@@ -65,36 +66,42 @@ manual_state = 0
 #-------------------------------------------- Variables End --------------------------------------------#
 
 #------------------------------------------- Functions Start -------------------------------------------#
+# Function to set the RGB LED color
 def setRGBLEDColor(color):
     if color == "blue":
-        GPIO.output(RED_LED_PIN, GPIO.LOW) #red low
-        GPIO.output(GREEN_LED_PIN, GPIO.LOW) #green low
-        GPIO.output(BLUE_LED_PIN, GPIO.HIGH) #blue high
+        GPIO.output(RED_LED_PIN, GPIO.LOW) # Red low
+        GPIO.output(GREEN_LED_PIN, GPIO.LOW) # Green low
+        GPIO.output(BLUE_LED_PIN, GPIO.HIGH) # Blue high
     elif color == "green":
-        GPIO.output(RED_LED_PIN, GPIO.LOW) #red low
-        GPIO.output(GREEN_LED_PIN, GPIO.HIGH) #green high
-        GPIO.output(BLUE_LED_PIN, GPIO.LOW) #blue low
+        GPIO.output(RED_LED_PIN, GPIO.LOW) # Red low
+        GPIO.output(GREEN_LED_PIN, GPIO.HIGH) # Green high
+        GPIO.output(BLUE_LED_PIN, GPIO.LOW) # Blue low
     elif color == "red":
-        GPIO.output(RED_LED_PIN, GPIO.HIGH) #red high
-        GPIO.output(GREEN_LED_PIN, GPIO.LOW) #green low
-        GPIO.output(BLUE_LED_PIN, GPIO.LOW) #blue low
+        GPIO.output(RED_LED_PIN, GPIO.HIGH) # Red high
+        GPIO.output(GREEN_LED_PIN, GPIO.LOW) # Green low
+        GPIO.output(BLUE_LED_PIN, GPIO.LOW) # Blue low
     else:
-        GPIO.output(RED_LED_PIN, GPIO.LOW) #red low
-        GPIO.output(GREEN_LED_PIN, GPIO.LOW) #green low
-        GPIO.output(BLUE_LED_PIN, GPIO.LOW) #blue
+        GPIO.output(RED_LED_PIN, GPIO.LOW) # Red low
+        GPIO.output(GREEN_LED_PIN, GPIO.LOW) # Green low
+        GPIO.output(BLUE_LED_PIN, GPIO.LOW) # Blue low
 
+# Function to calculate the PWM level
 def calculateLevel(value, max_level, step):
     return min(int(value // step) + 1, max_level)
 
+# Function to set the bulb heat via PWM
 def setBulbHeat(heat, max_level):
     BULB.ChangeDutyCycle(max(min(heat * (100 / max_level), 100), 0))
 
+# Function to set the fan speed via PWM
 def setFanSpeed(speed, max_level):
     FAN.ChangeDutyCycle(max(min(speed * (100 / max_level), 100), 0))
 
+# Function to set the buzzer state
 def setBuzzerState(state):
     GPIO.output(BUZZER_PIN, GPIO.LOW if (state == 0) else GPIO.HIGH)
 
+# Function to set the control variables value according to the commands received
 def onMessage(client, userdata, message):
     global manual_state, fan_speed, bulb_heat, buzzer_enabled, low_temp, high_temp
     payload = message.payload.decode('utf-8')
@@ -113,6 +120,7 @@ def onMessage(client, userdata, message):
     elif "hightemp" in payload:
         high_temp = float(payload.split(',')[1])
 
+# Function to start the MQTT subscriber for sensor commands from the 'topic_control' topic
 def startMQTTSubscriber():
     mqtt_subscriber = mqtt.Client()
     mqtt_subscriber.on_message = onMessage
@@ -120,6 +128,7 @@ def startMQTTSubscriber():
     mqtt_subscriber.subscribe(topic=topic_control, qos=1)
     mqtt_subscriber.loop_start()
 
+# Function to start the MQTT publisher for sensor data to the 'topic_data' topic & update the device variables
 def startMQTTPublisher():
     global rgb_color, fan_speed, bulb_heat, buzzer_state
     
@@ -127,6 +136,7 @@ def startMQTTPublisher():
         date_time = datetime.now()
         data = bme280.sample(bus=bus, address=address, compensation_params=calibration_params)
         
+        # Set the device variables according to the latest temperature readings
         if data.temperature >= high_temp:
             rgb_color = "red"
             if manual_state == 0:
@@ -146,10 +156,12 @@ def startMQTTPublisher():
                 bulb_heat = 0
             buzzer_state = 0
         
+        # Create the MQTT publisher
         mqtt_publisher = mqtt.Client()
         mqtt_publisher.connect(host=mqtt_broker, port=1883)
         print(f"\nClient was created at {date_time.strftime('%H:%M:%S')}")
         
+        # Publish the sensor data
         try:
             payload = f"{date_time},{data.temperature:.02f},{data.humidity:.02f},{fan_speed},{bulb_heat},{manual_state},{buzzer_state},{buzzer_enabled},{low_temp:.01f},{high_temp:.01f}"
             mqtt_publisher.publish(topic=topic_data, payload=payload, qos=1)
@@ -171,12 +183,15 @@ setBuzzerState(state=buzzer_state)
 #-------------------------------------- RPI Pin Initialisation End -------------------------------------#
 
 #------------------------------------------ Main Program Start -----------------------------------------#
+# Start the MQTT subscriber thread for the 'topic_control' topic
 subscriberThread = threading.Thread(target=startMQTTSubscriber)
 subscriberThread.start()
 
+# Start the MQTT publisher thread for the 'topic_data' topic
 publisherThread = threading.Thread(target=startMQTTPublisher)
 publisherThread.start()
 
+# Set the devices according to the device variables every 0.2s while the program is running
 try:
     while run_program:        
         setRGBLEDColor(color=rgb_color)
