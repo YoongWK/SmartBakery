@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+        <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet"/>
+        <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+        <title>Smart Bakery System</title>
+    </head>
+    <body>
+        <nav class="navbar bg-blue fixed-top" data-bs-theme="dark">
+            <div class="container-xl">
+                <a class="navbar-brand d-flex gap-3 align-items-center">
+                    <img src="{{ url_for('static', filename='muffin.jpg') }}" alt="Logo" width="35" height="35" class="rounded-circle">
+                    Smart Bakery System
+                </a>
+            </div>
+        </nav>
+        <div class="container-xl mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">Dashboard</h3>
+                <span>Updated: <span id="time"></span></span>
+            </div>
+            <div class="row">
+                <div class="small-card col-xl-3">
+                    <div class="bg-white rounded-4">
+                        <h5 class="text-center align-bottom py-3 mb-0">Temperature</h5>
+                        <div class="pb-2">
+                            <div class="d-flex justify-content-center align-items-center" id="temperature-gauge"></div>
+                        </div>                        
+                    </div>
+                </div>
+                <div class="d-xl-none p-2"></div>
+                <div class="small-card col-xl-3">
+                    <div class="bg-white rounded-4">
+                        <h5 class="text-center align-bottom py-3 mb-0">Humidity</h5>
+                        <div class="pb-2">
+                            <div class="d-flex justify-content-center align-items-center" id="humidity-gauge"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-xl-none p-2"></div>
+                <div class="small-card col-xl-3">
+                    <div class="bg-white rounded-4">
+                        <h5 class="text-center align-bottom py-3 mb-0">Control</h5>
+                        <div class="px-4 pb-2">
+                            <table class="control">
+                                <tr>
+                                    <td>
+                                        <label class="control-label" for="mode">Manual</label>
+                                    </td>
+                                    <td>
+                                        <div class="form-switch form-check m-0">
+                                            <input class="form-check-input shadow-none" type="checkbox" id="manual-switch">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="control-label" for="fan-speed-slider">Fan Speed</label>
+                                    </td>
+                                    <td class="w-100">
+                                        <div class="d-flex">
+                                            <input type="range" class="form-range" min="0" max="5" step="1" value="0" id="fan-speed-slider" disabled>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        &nbsp;&nbsp;<span id="fan-speed-text">0</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="control-label" for="bulb-heat-slider">Bulb Heat</label>
+                                    </td>
+                                    <td class="w-100">
+                                        <div class="d-flex">
+                                            <input type="range" class="form-range" min="0" max="5" step="1" value="0" id="bulb-heat-slider" disabled>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        &nbsp;&nbsp;<span id="bulb-heat-text">0</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-xl-none p-2"></div>
+                <div class="small-card col-xl-3">
+                    <div class="bg-white rounded-4">
+                        <h5 class="text-center align-bottom py-3 mb-0">Settings</h5>
+                        <div class="px-4 pb-2">
+                            <table class="control">
+                                <tr>
+                                    <td>
+                                        <label class="settings-label" for="buzzer-enable-button">Buzzer&nbsp;
+                                            <i class="bi bi-check-circle-fill text-green" id="ok-icon" hidden></i>
+                                            <i class="bi bi-exclamation-triangle-fill text-red" id="alert-icon" hidden></i>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn-custom background-green" id="buzzer-enable-button" style="width: 80px;">Enabled</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="settings-label">Low Temp</label>
+                                    </td>
+                                    <td class="w-100">
+                                        <div class="input-group">
+                                            <button type="button" id="low-temp-minus-button" class="btn-custom background-red btn-temp-control">-</button>
+                                            <input class="form-control shadow-none px-2 py-1 text-center" id="low-temp-text" style="font-size: 14px;" type="text" readonly>
+                                            <button type="button" id="low-temp-plus-button" class="btn-custom background-green btn-temp-control">+</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="settings-label">High Temp</label>
+                                    </td>
+                                    <td class="w-100">
+                                        <div class="input-group">
+                                            <button type="button" id="high-temp-minus-button" class="btn-custom background-red btn-temp-control">-</button>
+                                            <input class="form-control shadow-none px-2 py-1 text-center" id="high-temp-text" style="font-size: 14px;" type="text" readonly>
+                                            <button type="button" id="high-temp-plus-button" class="btn-custom background-green btn-temp-control">+</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="medium-card col-xl-6">
+                    <div class="bg-white rounded-4">
+                        <h5 class="text-center align-bottom py-3 mb-0">Temperature Over Time</h5>
+                        <div class="ps-3 pb-3">
+                            <div class="d-flex justify-content-center align-items-center" id="temperature-graph"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-xl-none p-2"></div>
+                <div class="medium-card col-xl-6">
+                    <div class="bg-white rounded-4">
+                        <h5 class="text-center align-bottom py-3 mb-0">Humidity Over Time</h5>
+                        <div class="ps-3 pb-3">
+                            <div class="d-flex justify-content-center align-items-center" id="humidity-graph"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="medium-card col-xl-6">
+                    <div class="bg-white rounded-4">
+                        <h5 class="text-center align-bottom py-3 mb-0">Bulb Heat Over Time</h5>
+                        <div class="ps-3 pb-3">
+                            <div class="d-flex justify-content-center align-items-center" id="bulb-heat-graph"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-xl-none p-2"></div>
+                <div class="medium-card col-xl-6">
+                    <div class="bg-white rounded-4">
+                        <h5 class="text-center align-bottom py-3 mb-0">Fan Speed Over Time</h5>
+                        <div class="ps-3 pb-3">
+                            <div class="d-flex justify-content-center align-items-center" id="fan-speed-graph"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="mt-3 bg-blue">
+            <p class="text-center text-white pt-3 pb-1 m-0">Smart Bakery System</p>
+            <p class="text-center text-white pb-3 m-0"><small>&copy; 2024 IOTP PE04 Group 06</small></p>
+        </footer>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+        <script src="static/main.js"></script>
+    </body>
+</html>
